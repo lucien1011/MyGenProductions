@@ -283,7 +283,9 @@ if [ ! -d ${AFS_GEN_FOLDER}/${name}_gridpack ]; then
       if [[ $model = *[!\ ]* ]]; then
         echo "Loading extra model $model"
         #wget --no-verbose --no-check-certificate https://cms-project-generators.web.cern.ch/cms-project-generators/$model	
-        cp /afs/cern.ch/work/k/klo/Higgs/ALP/EvtGeneration/test/2018-02-14/$model .
+        #cp /afs/cern.ch/work/k/klo/Higgs/ALP/EvtGeneration/test/2018-02-14/$model .
+        cp -r /afs/cern.ch/work/k/klo/Higgs/DarkZ/EvtGeneration/test/2018-03-22/$model .
+        echo $model
         cd models
         if [[ $model == *".zip"* ]]; then
           unzip ../$model
