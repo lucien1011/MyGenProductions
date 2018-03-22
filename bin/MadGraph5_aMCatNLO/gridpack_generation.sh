@@ -282,7 +282,8 @@ if [ ! -d ${AFS_GEN_FOLDER}/${name}_gridpack ]; then
       #get needed BSM model
       if [[ $model = *[!\ ]* ]]; then
         echo "Loading extra model $model"
-        wget --no-verbose --no-check-certificate https://cms-project-generators.web.cern.ch/cms-project-generators/$model	
+        #wget --no-verbose --no-check-certificate https://cms-project-generators.web.cern.ch/cms-project-generators/$model	
+        cp /afs/cern.ch/work/k/klo/Higgs/ALP/EvtGeneration/test/2018-02-14/$model .
         cd models
         if [[ $model == *".zip"* ]]; then
           unzip ../$model
@@ -763,6 +764,8 @@ if [ -e $CARDSDIR/${name}_externaltarball.dat ]; then
     EXTRA_TAR_ARGS="${name}_externaltarball.dat header_for_madspin.txt"
 fi
 XZ_OPT="$XZ_OPT" tar -cJpsf ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz mgbasedir process runcmsgrid.sh gridpack_generation*.log InputCards $EXTRA_TAR_ARGS
+echo ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz
+echo $EXTRA_TAR_ARGS
 
 #mv ${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz
 

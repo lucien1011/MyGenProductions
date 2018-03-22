@@ -1,0 +1,5 @@
+import model ALP_chiral_UFO
+
+generate p p > h, h > ax Z, Z > mu+ mu-
+
+output ALP_chiral -nojpeg
