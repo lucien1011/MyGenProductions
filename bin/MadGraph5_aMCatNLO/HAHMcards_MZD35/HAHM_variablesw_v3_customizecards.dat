@@ -1,4 +1,4 @@
-et param_card hidden 1 35
+set param_card hidden 1 35
 set param_card mass 1023 35
 set param_card hidden 3 1.000000e-02
 set param_card hidden 4 1.000000e-09
