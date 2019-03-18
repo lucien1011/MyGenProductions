@@ -15,10 +15,10 @@
 
 #_____________________________________________________________________________________
 # User chooses which processes to run: 1 = run, 0 = don't run
-makeCards=1         # New MadGraph cards
-makeWorkspace=1     # run this each time you change parameters below
-makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
-submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
+makeCards=0         # New MadGraph cards
+makeWorkspace=0     # run this each time you change parameters below
+makeTarball=0       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
+submitGENSIM=1      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
@@ -35,10 +35,7 @@ numjets=0
 tarballName="HAHM_variablesw_v3_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz"
 nevents=1000
 njobs=100
-#nevents=1000
-#njobs=100
-
-lhapdf=306000       # official pdf for 2017, NNPDF31_nnlo_hessian_pdfas
+#lhapdf=306000       # official pdf for 2017, NNPDF31_nnlo_hessian_pdfas
 lhapdf=10042        # cteq61l
 analysis="ppToZZd"  # used only for naming directories and files
 process='p p > Z Zp , Z > l+ l- , Zp > l+ l-' # will be put into the MG cards
@@ -169,7 +166,7 @@ if [ ${makeTarball} = 1 ]; then
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cardsDir=${analysis}_cards_eps${epsilon}_MZD${zdmass}
 
-        echo "Generating gridpack ${tarballName} for mZd${zdmass} GeV" 
+        echo "Generating gridpack ${tarballName} for mZd${zdmass} GeV for process ${analysis}" 
 
         function createNewTarball {
 
@@ -177,15 +174,18 @@ if [ ${makeTarball} = 1 ]; then
             if [ -d ${cardsDir}/HAHM_variablesw_v3/ ];  then rm -rf ${cardsDir}/HAHM_variablesw_v3/; fi
 
             cp mkgridpack.sh DELETE_mkgridpack.sh
-            sed -i "s|MODELPATH|${MG_Dir}/${cardsDir}|" tempmkgridpack.sh
+            cp gridpack_generation.sh DELETE_gridpack_generation.sh
+            sed -i "s|gridpack|DELETE_gridpack|g"        DELETE_mkgridpack.sh
+            sed -i "s|MODELPATH|${MG_Dir}/${cardsDir}|g" DELETE_gridpack_generation.sh
             ./DELETE_mkgridpack.sh HAHM_variablesw_v3 ${cardsDir}/
-            rm DELETE_mkgridpack.sh
+            rm DELETE_mkgridpack.sh DELETE_gridpack_generation.sh
 
             echo "Moving log files with MadGraph cards into: ${MG_Dir}/${cardsDir}"
             mv HAHM_variablesw_v3/ HAHM_variablesw_v3.log ${cardsDir}/
             ## Move tarball into workspace
             echo "Moving gridpack ${tarballName} into workspace: ${workDirBASE}/${workDir}"
             mv ${tarballName} ${workDirBASE}/${workDir}
+            echo
         }
 
         ## Check to see if tarball already exists in workspace 
@@ -217,7 +217,7 @@ if [ ${submitGENSIM} = 1 ]; then
     for zdmass in ${zdmasslist}; do
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
-        rm -rf crab*MZD*_LHE-GEN-SIM_*
+        rm -rf crab*${analysis}*_LHE-GEN-SIM_*
         echo "Submitting mZd${zdmass} GeV for CRAB GEN-SIM processing."
         crab submit -c crab_GEN-SIM.py
     done
@@ -234,10 +234,10 @@ if [ ${submitPUMix} = 1 ]; then
     for zdmass in ${zdmasslist}; do
         workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
-        rm -rf crab*MZD*_PUMix_*
+        rm -rf crab*${analysis}*_PUMix_*
         # Find the dataset path from the CRAB GEN-SIM log file 
         echo "Finding dataset path to CRAB GEN-SIM files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_HToZdZd_*MZD${zdmass}*_LHE-GEN-SIM_*/crab*/ | grep -E */ZD.*LHE-GEN-SIM_RAWSIM* | cut -f 4 )
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_LHE-GEN-SIM_*/crab*/ | grep -E */ZD.*LHE-GEN-SIM_RAWSIM* | cut -f 4 )
 
         for file in crab_PUMix.py step2_PUMix_cfg.py; do
             sed -i "s|GENSIMDATASET|${datasetDir}|g" ${file}
@@ -259,10 +259,10 @@ if [ ${submitAOD} = 1 ]; then
     for zdmass in ${zdmasslist}; do
         workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
-        rm -rf crab*MZD*_AODSIM_*
+        rm -rf crab*${analysis}*_AODSIM_*
         # Find the dataset path from the CRAB PUMix log file 
         echo "Finding dataset path to CRAB PUMix files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_HToZdZd_*MZD${zdmass}*_PUMix_*/crab*/ | grep -E */ZD.*PUMix* | cut -f 4 )
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_PUMix_*/crab*/ | grep -E */ZD.*PUMix* | cut -f 4 )
         sed -i "s|PUMIXDATASET|${datasetDir}|g" crab_AODSIM.py
 
         echo "Submitting mZd${zdmass} GeV for CRAB AODSIM processing."
@@ -281,10 +281,10 @@ if [ ${submitMiniAOD} = 1 ]; then
     for zdmass in ${zdmasslist}; do
         workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
-        rm -rf crab*MZD*_MINIAODSIM_* 
+        rm -rf crab*${analysis}*_MINIAODSIM_* 
         # Find the dataset path from the CRAB AODSIM log file 
         echo "Finding dataset path to CRAB AODSIM files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_HToZdZd_*MZD${zdmass}*_AODSIM*/crab*/ | grep -E */ZD.*AOD* | cut -f 4 )
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_AODSIM*/crab*/ | grep -E */ZD.*AOD* | cut -f 4 )
         sed -i "s|AODDATASET|${datasetDir}|g" crab_MINIAODSIM.py
 
         echo "Submitting mZd${zdmass} GeV for CRAB MiniAODSIM processing."
