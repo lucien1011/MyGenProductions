@@ -1,5 +1,5 @@
 #!/bin/bash
-######################################################################################
+#####################################################################################################
 ## PURPOSE: For each Zd mass point for the H-->Z(d)Z(d)-->4l, quickly and easily:
 ##              - make MadGraph cards for any HZZ4lep process
 ##              - prepare a workdir (crab_cfg.py, stepX files)
@@ -8,45 +8,46 @@
 ## SYNTAX:  ./<scriptname.sh>
 ## NOTES:   User needs to do: 
 ##          - 'source /cvmfs/cms.cern.ch/crab3/crab.sh' before running this script.
+##          - Review MG_cards_template dir and make sure run_card.dat and proc_card.dat are correct.
+##          - REVIEW EACH LINE IN 'Parameters' SECTION VERY CAREFULLY!
 ## AUTHOR:  Jake Rosenzweig
 ## DATE:    2019-02-09
 ## UPDATED: 2019-03-18
-######################################################################################
+#####################################################################################################
 
 #_____________________________________________________________________________________
 # User chooses which processes to run: 1 = run, 0 = don't run
-makeCards=0         # New MadGraph cards
-makeWorkspace=0     # run this each time you change parameters below
-makeTarball=0       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
-submitGENSIM=1      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
+makeCards=1         # New MadGraph cards
+makeWorkspace=1     # run this to apply new User-specific Parameters below or make new CRAB cards
+makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
+submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 
 overWrite=1 # 1 = overwrite any files and directories without prompting
-#zdmasslist="4 5 6 7 8 9 10 15 20 25 30 35 40 45 50 55 60"
-zdmasslist="4 15 30"
+zdmasslist="5"
 #_____________________________________________________________________________________
 # User-specific Parameters
 # If you change parameters here, you have to rerun makeWorkspace=1 for them to take effect
-epsilon="1e-2"    ## epsilon can't yet contain  a decimal, e.g. 1.5e-2
+epsilon="2e-2"    ## epsilon can't yet contain  a decimal, e.g. 1.5e-2
 kappa="1e-9"
 numjets=0
 tarballName="HAHM_variablesw_v3_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz"
 nevents=1000
-njobs=100
-#lhapdf=306000       # official pdf for 2017, NNPDF31_nnlo_hessian_pdfas
-lhapdf=10042        # cteq61l
-analysis="ppToZZd"  # used only for naming directories and files
-process='p p > Z Zp , Z > l+ l- , Zp > l+ l-' # will be put into the MG cards
-
+njobs=50
+lhapdf=10042       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
+analysis="ppZZd4l"  # used only for naming directories and files
+process='p p > z zp / h h2 , z > l+ l- , zp > l+ l-' # will be put into the MG cards
 MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to mkgridpack.sh and MG_cards_template 
-workDirBASE="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration" # No trailing '/'! , Path to all work dirs
+
+# Outputs:
+workDirBASE="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration" # No trailing '/'! , Path to all work dirs and workDir_template
 freshCMSSWpath="/home/rosedj1/CleanCMSSWenvironments/CMSSW_9_4_2/src/"
-storageSiteGEN='/store/user/drosenzw/HToZZd/ppToZZd_GEN-SIM/'
-storageSitePUMix='/store/user/drosenzw/HToZZd/ppToZZd_PUMix/'
-storageSiteAOD='/store/user/drosenzw/HToZZd/ppToZZd_AODSIM/'
-storageSiteMiniAOD='/store/user/drosenzw/HToZZd/ppToZZd_MINIAODSIM/'
+storageSiteGEN="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_GEN-SIM/"
+storageSitePUMix="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_PUMix/"
+storageSiteAOD="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_AODSIM/"
+storageSiteMiniAOD="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_MINIAODSIM/"
 
 #_____________________________________________________________________________________
 # Automatic variables
@@ -68,7 +69,7 @@ if [ ${makeCards} = 1 ]; then
         echo "Making MadGraph5 cards for mZd${zdmass} GeV in ${MG_Dir}/${cardsDir}"
 
         function createNewCards { 
-            cp -rT MG_cards_template/ ${cardsDir}
+            cp -rT MG_cards_template/ ${cardsDir} # Will only overwrite files that share same name in source dir!
             cd ${cardsDir}
             sed -i "s|ZDMASS|${zdmass}|g"       HAHM_variablesw_v3_customizecards.dat
             sed -i "s|EPSILON|${temp_eps}|g"    HAHM_variablesw_v3_customizecards.dat
@@ -102,11 +103,15 @@ if [ ${makeWorkspace} = 1 ]; then
 
         cd ${workDirBASE}
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
-
         echo "Making workspace: ${workDirBASE}/${workDir}"
 
         function createNewWorkspace {
-            cp -rT workDir_template/ ${workDir}
+            if [ -d workDir_template/ ]; then
+                cp -rT workDir_template/ ${workDir}
+            else
+                echo "Directory workDir_template doesn't exist. Not creating workspace ${workDirBASE}/${workDir}."
+                return
+            fi
             cd ${workDir}
             ## Replace values with correct Zd mass, file paths, etc. in each file.
             for file in \
@@ -133,6 +138,7 @@ if [ ${makeWorkspace} = 1 ]; then
                 sed -i "s|STORAGESITEAOD|${storageSiteAOD}|g"           ${file}
                 sed -i "s|STORAGESITEMINIAOD|${storageSiteMiniAOD}|g"   ${file}
             done
+            cd ..
         }
 
         ## Check to see if dir already exists
@@ -162,16 +168,20 @@ if [ ${makeTarball} = 1 ]; then
     #scram b clean
     for zdmass in ${zdmasslist}; do
 
-        cd ${MG_Dir}
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cardsDir=${analysis}_cards_eps${epsilon}_MZD${zdmass}
-
         echo "Generating gridpack ${tarballName} for mZd${zdmass} GeV for process ${analysis}" 
 
         function createNewTarball {
+            
+            cd ${MG_Dir}
 
-            if [ -d HAHM_variablesw_v3/ ];              then rm -rf HAHM_variablesw_v3/; fi
-            if [ -d ${cardsDir}/HAHM_variablesw_v3/ ];  then rm -rf ${cardsDir}/HAHM_variablesw_v3/; fi
+            if [ -d HAHM_variablesw_v3/ ];     then rm -rf HAHM_variablesw_v3/; fi
+            if [ -e HAHM_variablesw_v3.log ];  then rm     HAHM_variablesw_v3.log; fi
+            if [ -e ${tarballName} ];          then rm     ${tarballName}; fi
+            if [ -d ${workDirBASE}/${workDir}/HAHM_variablesw_v3/ ];    then rm -rf ${workDirBASE}/${workDir}/HAHM_variablesw_v3/; fi
+            if [ -e ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log ]; then rm     ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log; fi
+            if [ -e ${workDirBASE}/${workDir}/${tarballName} ];         then rm     ${workDirBASE}/${workDir}/${tarballName}; fi
 
             cp mkgridpack.sh DELETE_mkgridpack.sh
             cp gridpack_generation.sh DELETE_gridpack_generation.sh
@@ -180,17 +190,14 @@ if [ ${makeTarball} = 1 ]; then
             ./DELETE_mkgridpack.sh HAHM_variablesw_v3 ${cardsDir}/
             rm DELETE_mkgridpack.sh DELETE_gridpack_generation.sh
 
-            echo "Moving log files with MadGraph cards into: ${MG_Dir}/${cardsDir}"
-            mv HAHM_variablesw_v3/ HAHM_variablesw_v3.log ${cardsDir}/
-            ## Move tarball into workspace
-            echo "Moving gridpack ${tarballName} into workspace: ${workDirBASE}/${workDir}"
-            mv ${tarballName} ${workDirBASE}/${workDir}
+            echo "Moving tarball and log files into: ${workDirBASE}/${workDir}/"
+            mv HAHM_variablesw_v3/ HAHM_variablesw_v3.log ${tarballName} ${workDirBASE}/${workDir}
             echo
         }
 
         ## Check to see if tarball already exists in workspace 
-        if [ -e ${MG_Dir}/${tarballName} ] && [ ${overWrite} = 0 ]; then
-            echo "The gridpack ${tarballName} already exists in ${workDir}. Overwrite it? [y/n] "
+        if [ -e ${workDirBASE}/${workDir}/${tarballName} ] && [ ${overWrite} = 0 ]; then
+            echo "The gridpack ${tarballName} already exists in ${workDirBASE}/${workDir}. Overwrite it? [y/n] "
             read ans
             if [ ${ans} = 'y' ]; then 
                 createNewTarball
@@ -220,6 +227,7 @@ if [ ${submitGENSIM} = 1 ]; then
         rm -rf crab*${analysis}*_LHE-GEN-SIM_*
         echo "Submitting mZd${zdmass} GeV for CRAB GEN-SIM processing."
         crab submit -c crab_GEN-SIM.py
+        echo
     done
 
     cd ${startDir}
@@ -232,7 +240,7 @@ if [ ${submitPUMix} = 1 ]; then
     eval `scramv1 runtime -sh` # same as cmsenv
 
     for zdmass in ${zdmasslist}; do
-        workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
+        workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
         rm -rf crab*${analysis}*_PUMix_*
         # Find the dataset path from the CRAB GEN-SIM log file 
@@ -245,6 +253,7 @@ if [ ${submitPUMix} = 1 ]; then
 
         echo "Submitting mZd${zdmass} GeV for CRAB PUMix processing."
         crab submit -c crab_PUMix.py
+        echo
     done
 
     cd ${startDir}
@@ -257,7 +266,7 @@ if [ ${submitAOD} = 1 ]; then
     eval `scramv1 runtime -sh` # same as cmsenv
 
     for zdmass in ${zdmasslist}; do
-        workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
+        workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
         rm -rf crab*${analysis}*_AODSIM_*
         # Find the dataset path from the CRAB PUMix log file 
@@ -267,6 +276,7 @@ if [ ${submitAOD} = 1 ]; then
 
         echo "Submitting mZd${zdmass} GeV for CRAB AODSIM processing."
         crab submit -c crab_AODSIM.py
+        echo
     done
 
     cd ${startDir}
@@ -279,7 +289,7 @@ if [ ${submitMiniAOD} = 1 ]; then
     eval `scramv1 runtime -sh` # same as cmsenv
 
     for zdmass in ${zdmasslist}; do
-        workDir=workDir_HToZdZd_eps${epsilon}_mZd${zdmass}
+        workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         cd ${workDirBASE}/${workDir}
         rm -rf crab*${analysis}*_MINIAODSIM_* 
         # Find the dataset path from the CRAB AODSIM log file 
@@ -289,6 +299,7 @@ if [ ${submitMiniAOD} = 1 ]; then
 
         echo "Submitting mZd${zdmass} GeV for CRAB MiniAODSIM processing."
         crab submit -c crab_MINIAODSIM.py
+        echo
     done
 
     cd ${startDir}
