@@ -17,16 +17,16 @@
 
 #_____________________________________________________________________________________
 # User chooses which processes to run: 1 = run, 0 = don't run
-makeCards=1         # New MadGraph cards
-makeWorkspace=1     # run this to apply new User-specific Parameters below or make new CRAB cards
-makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
+makeCards=0         # New MadGraph cards
+makeWorkspace=0     # run this to apply new User-specific Parameters below or make new CRAB cards
+makeTarball=0       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
 submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
-submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
+submitPUMix=1       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 
 overWrite=1 # 1 = overwrite any files and directories without prompting
-zdmasslist="5"
+zdmasslist="5 15 30"
 #_____________________________________________________________________________________
 # User-specific Parameters
 # If you change parameters here, you have to rerun makeWorkspace=1 for them to take effect
@@ -35,7 +35,7 @@ kappa="1e-9"
 numjets=0
 tarballName="HAHM_variablesw_v3_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz"
 nevents=1000
-njobs=50
+njobs=25
 lhapdf=10042       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
 analysis="ppZZd4l"  # used only for naming directories and files
 process='p p > z zp / h h2 , z > l+ l- , zp > l+ l-' # will be put into the MG cards
@@ -44,10 +44,10 @@ MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/ge
 # Outputs:
 workDirBASE="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration" # No trailing '/'! , Path to all work dirs and workDir_template
 freshCMSSWpath="/home/rosedj1/CleanCMSSWenvironments/CMSSW_9_4_2/src/"
-storageSiteGEN="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_GEN-SIM/"
-storageSitePUMix="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_PUMix/"
-storageSiteAOD="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_AODSIM/"
-storageSiteMiniAOD="/store/user/drosenzw/HToZdZd/${analysis}/${analysis}_MINIAODSIM/"
+storageSiteGEN="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_GEN-SIM/"
+storageSitePUMix="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_PUMix/"
+storageSiteAOD="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_AODSIM/"
+storageSiteMiniAOD="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_MINIAODSIM/"
 
 #_____________________________________________________________________________________
 # Automatic variables
@@ -103,7 +103,7 @@ if [ ${makeWorkspace} = 1 ]; then
 
         cd ${workDirBASE}
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
-        echo "Making workspace: ${workDirBASE}/${workDir}"
+        echo "Making workspace: ${workDirBASE}/${workDir}/"
 
         function createNewWorkspace {
             if [ -d workDir_template/ ]; then
@@ -245,15 +245,22 @@ if [ ${submitPUMix} = 1 ]; then
         rm -rf crab*${analysis}*_PUMix_*
         # Find the dataset path from the CRAB GEN-SIM log file 
         echo "Finding dataset path to CRAB GEN-SIM files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_*MZD${zdmass}*_LHE-GEN-SIM_*/crab*/ | grep -E */ZD.*LHE-GEN-SIM_RAWSIM* | cut -f 4 )
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_LHE-GEN-SIM_*/crab*/ | grep -E "\b/.*GEN-SIM_RAWSIMoutput.*USER$" | cut -f 4 )
 
-        for file in crab_PUMix.py step2_PUMix_cfg.py; do
-            sed -i "s|GENSIMDATASET|${datasetDir}|g" ${file}
-        done
+        if [[ "$datasetDir" == '' ]]; then 
+            echo "WARNING!!! Unable to retrieve GEN-SIM dataset DirPath for mZd${zdmass} GeV for PUMix crab_cfg.py file."
+            echo "NOT submitting mZd${zdmass} GeV for GEN-SIM processing."
+            echo
+        else
+            for file in crab_PUMix.py step2_PUMix_cfg.py; do
+                sed -i "s|GENSIMDATASET|${datasetDir}|g" ${file}
+            done
 
-        echo "Submitting mZd${zdmass} GeV for CRAB PUMix processing."
-        crab submit -c crab_PUMix.py
-        echo
+            echo "Submitting mZd${zdmass} GeV for CRAB PUMix processing."
+            crab submit -c crab_PUMix.py
+            echo
+        fi
+
     done
 
     cd ${startDir}
@@ -271,12 +278,19 @@ if [ ${submitAOD} = 1 ]; then
         rm -rf crab*${analysis}*_AODSIM_*
         # Find the dataset path from the CRAB PUMix log file 
         echo "Finding dataset path to CRAB PUMix files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_*MZD${zdmass}*_PUMix_*/crab*/ | grep -E */ZD.*PUMix* | cut -f 4 )
-        sed -i "s|PUMIXDATASET|${datasetDir}|g" crab_AODSIM.py
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_PUMix_*/crab*/ | grep -E "\b/.*PUMix.*USER$" | cut -f 4 )
 
-        echo "Submitting mZd${zdmass} GeV for CRAB AODSIM processing."
-        crab submit -c crab_AODSIM.py
-        echo
+        if [[ "$datasetDir" == '' ]]; then 
+            echo "WARNING!!! Unable to retrieve PUMix dataset DirPath for mZd${zdmass} GeV for AODSIM crab_cfg.py file."
+            echo "NOT submitting mZd${zdmass} GeV for AODSIM processing."
+            echo
+        else
+            sed -i "s|PUMIXDATASET|${datasetDir}|g" crab_AODSIM.py
+
+            echo "Submitting mZd${zdmass} GeV for CRAB AODSIM processing."
+            crab submit -c crab_AODSIM.py
+            echo
+        fi
     done
 
     cd ${startDir}
@@ -294,12 +308,19 @@ if [ ${submitMiniAOD} = 1 ]; then
         rm -rf crab*${analysis}*_MINIAODSIM_* 
         # Find the dataset path from the CRAB AODSIM log file 
         echo "Finding dataset path to CRAB AODSIM files for mZd${zdmass} GeV..."
-        datasetDir=$( crab status -d crab_*MZD${zdmass}*_AODSIM*/crab*/ | grep -E */ZD.*AOD* | cut -f 4 )
-        sed -i "s|AODDATASET|${datasetDir}|g" crab_MINIAODSIM.py
+        datasetDir=$( crab status -d crab_*MZD${zdmass}*_AODSIM*/crab*/ | grep -E "\b/.*AODSIM.*USER$" | cut -f 4 )
 
-        echo "Submitting mZd${zdmass} GeV for CRAB MiniAODSIM processing."
-        crab submit -c crab_MINIAODSIM.py
-        echo
+        if [[ "$datasetDir" == '' ]]; then 
+            echo "WARNING!!! Unable to retrieve AODSIM dataset DirPath for mZd${zdmass} GeV for MINIAODSIM crab_cfg.py file."
+            echo "NOT submitting mZd${zdmass} GeV for MINIAODSIM processing."
+            echo
+        else
+            sed -i "s|AODDATASET|${datasetDir}|g" crab_MINIAODSIM.py
+
+            echo "Submitting mZd${zdmass} GeV for CRAB MiniAODSIM processing."
+            crab submit -c crab_MINIAODSIM.py
+            echo
+        fi
     done
 
     cd ${startDir}
