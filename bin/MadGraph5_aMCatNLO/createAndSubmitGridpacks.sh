@@ -12,48 +12,53 @@
 ##          - REVIEW EACH LINE IN 'Parameters' SECTION VERY CAREFULLY!
 ## AUTHOR:  Jake Rosenzweig
 ## DATE:    2019-02-09
-## UPDATED: 2019-03-18
+## UPDATED: 2019-05-17
 #####################################################################################################
 
 #_____________________________________________________________________________________
 # User chooses which processes to run: 1 = run, 0 = don't run
-makeCards=0         # New MadGraph cards
-makeWorkspace=0     # run this to apply new User-specific Parameters below or make new CRAB cards
-makeTarball=0       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
+makeCards=1         # New MadGraph cards
+makeWorkspace=1     # run this to apply new User-specific Parameters below or make new CRAB cards
+makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. mustn't have cmsenv'ed!
 submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
-submitPUMix=1       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
+submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 
+# @@@@@ STILL UNDER CONSTRUCTION @@@@@ Unpack tarball and do: ./runcmsgrid.sh
+makeLHEfile=0       
+# @@@@@ STILL UNDER CONSTRUCTION @@@@@
+
 overWrite=1 # 1 = overwrite any files and directories without prompting
-zdmasslist="5 15 30"
+zdmasslist="20"
 #_____________________________________________________________________________________
 # User-specific Parameters
 # If you change parameters here, you have to rerun makeWorkspace=1 for them to take effect
-epsilon="2e-2"    ## epsilon can't yet contain  a decimal, e.g. 1.5e-2
+epsilon="5e-2"    ## epsilon can't yet contain a decimal, e.g. 1.5e-2
 kappa="1e-9"
 numjets=0
 tarballName="HAHM_variablesw_v3_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz"
 nevents=1000
-njobs=25
-lhapdf=10042       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
-analysis="ppZZd4l"  # used only for naming directories and files
-process='p p > z zp / h h2 , z > l+ l- , zp > l+ l-' # will be put into the MG cards
+njobs=10
+lhapdf=306000       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
+analysis="ppTOzzp_possibleHiggs"  # used for naming directories and files
+#analysis="ppTOzzp_nohh2"  # used for naming directories and files
+process='p p > z zp , z > l+ l- , zp > l+ l-' # will be put into the MG cards
 MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to mkgridpack.sh and MG_cards_template 
 
 # Outputs:
 workDirBASE="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration" # No trailing '/'! , Path to all work dirs and workDir_template
 freshCMSSWpath="/home/rosedj1/CleanCMSSWenvironments/CMSSW_9_4_2/src/"
-storageSiteGEN="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_GEN-SIM/"
-storageSitePUMix="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_PUMix/"
-storageSiteAOD="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_AODSIM/"
-storageSiteMiniAOD="/store/user/drosenzw/HToZZd/${analysis}/${analysis}_MINIAODSIM/"
+storageSiteGEN="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_GEN-SIM/"
+storageSitePUMix="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_PUMix/"
+storageSiteAOD="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_AODSIM/"
+storageSiteMiniAOD="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_MINIAODSIM/"
 
 #_____________________________________________________________________________________
 # Automatic variables
 startDir=`pwd`
 maxjobs=$(( 5 * $njobs ))               # so that CRAB doesn't kill the jobs early
-
+maxevents=$(( $nevents * $njobs ))
 #_____________________________________________________________________________________
 # Create new MadGraph cards 
 if [ ${makeCards} = 1 ]; then
@@ -176,6 +181,7 @@ if [ ${makeTarball} = 1 ]; then
             
             cd ${MG_Dir}
 
+            #- Remove old files
             if [ -d HAHM_variablesw_v3/ ];     then rm -rf HAHM_variablesw_v3/; fi
             if [ -e HAHM_variablesw_v3.log ];  then rm     HAHM_variablesw_v3.log; fi
             if [ -e ${tarballName} ];          then rm     ${tarballName}; fi
@@ -212,6 +218,85 @@ if [ ${makeTarball} = 1 ]; then
         fi
 
     done
+    cd ${startDir}
+fi
+
+#_____________________________________________________________________________________
+# Unpack tarball and make LHE file
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#@@@@@@@@@@@@@@@@@@@@ WARNING @@@@@@@@@@@@@@@@@@@@@@@
+#@@@@@ This code is still under construction!!! @@@@@
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+if [ ${makeLHEfile} = 1 ]; then
+    for zdmass in ${zdmasslist}; do
+
+        unpackedTarDir="UnpackedTarball"
+        workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
+        #cardsDir=${analysis}_cards_eps${epsilon}_MZD${zdmass}
+
+        if [ ! -e ${workDirBASE}/${workDir}/${}]
+        echo "Unpacking tarball in ${workDir} Generating gridpack ${tarballName} for mZd${zdmass} GeV for process ${analysis}" 
+        cd ${workdir}
+        
+        # See if tarball is already unpacked
+        if [ -d ${} ]; then
+            echo "WARNING! Tarball has already been unpacked in ${}"
+        else
+            mkdir ${unpackedTarDir}
+            cd ${unpackedTarDir}
+            mv ../${tarballName} .
+            tar -xf ${tarballName}
+            # Move tarball back to where it was
+            mv ${tarballName} ..
+
+        ### Create LHE file
+        # Get a random 4 digit number for seed
+        randnum=$(( 1000 + RANDOM % 9000 ))
+        ./runcmsgrid.sh ${maxevents} ${randnum}
+
+#### The code below is used only as a template! Delete it when ready.
+        cd ${startDir} 
+
+        function createNewTarball {
+            
+            cd ${MG_Dir}
+
+            #- Remove old files
+            if [ -d HAHM_variablesw_v3/ ];     then rm -rf HAHM_variablesw_v3/; fi
+            if [ -e HAHM_variablesw_v3.log ];  then rm     HAHM_variablesw_v3.log; fi
+            if [ -e ${tarballName} ];          then rm     ${tarballName}; fi
+            if [ -d ${workDirBASE}/${workDir}/HAHM_variablesw_v3/ ];    then rm -rf ${workDirBASE}/${workDir}/HAHM_variablesw_v3/; fi
+            if [ -e ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log ]; then rm     ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log; fi
+            if [ -e ${workDirBASE}/${workDir}/${tarballName} ];         then rm     ${workDirBASE}/${workDir}/${tarballName}; fi
+
+            cp mkgridpack.sh DELETE_mkgridpack.sh
+            cp gridpack_generation.sh DELETE_gridpack_generation.sh
+            sed -i "s|gridpack|DELETE_gridpack|g"        DELETE_mkgridpack.sh
+            sed -i "s|MODELPATH|${MG_Dir}/${cardsDir}|g" DELETE_gridpack_generation.sh
+            ./DELETE_mkgridpack.sh HAHM_variablesw_v3 ${cardsDir}/
+            rm DELETE_mkgridpack.sh DELETE_gridpack_generation.sh
+
+            echo "Moving tarball and log files into: ${workDirBASE}/${workDir}/"
+            mv HAHM_variablesw_v3/ HAHM_variablesw_v3.log ${tarballName} ${workDirBASE}/${workDir}
+            echo
+        }
+
+        ## Check to see if tarball already exists in workspace 
+        if [ -e ${workDirBASE}/${workDir}/${tarballName} ] && [ ${overWrite} = 0 ]; then
+            echo "The gridpack ${tarballName} already exists in ${workDirBASE}/${workDir}. Overwrite it? [y/n] "
+            read ans
+            if [ ${ans} = 'y' ]; then 
+                createNewTarball
+            else
+                echo "Not creating new tarball for mZd${zdmass}."
+                continue
+            fi
+
+        ## Tarball doesn't exist or user overwrites all. Create tarball
+        else
+            createNewTarball
+        fi
+
     cd ${startDir}
 fi
 
