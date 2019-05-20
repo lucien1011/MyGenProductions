@@ -25,9 +25,7 @@ submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 
-# @@@@@ STILL UNDER CONSTRUCTION @@@@@ Unpack tarball and do: ./runcmsgrid.sh
-makeLHEfile=0       
-# @@@@@ STILL UNDER CONSTRUCTION @@@@@
+makeLHEfile=1       # @@@@@ in alpha stage @@@@@ Unpack tarball and do: ./runcmsgrid.sh
 
 overWrite=1 # 1 = overwrite any files and directories without prompting
 zdmasslist="20"
@@ -41,18 +39,18 @@ tarballName="HAHM_variablesw_v3_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz"
 nevents=1000
 njobs=10
 lhapdf=306000       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
-analysis="ppTOzzp_possibleHiggs"  # used for naming directories and files
+analysis="ppTOhTOzzp"  # used for naming directories and files
 #analysis="ppTOzzp_nohh2"  # used for naming directories and files
-process='p p > z zp , z > l+ l- , zp > l+ l-' # will be put into the MG cards
+process='p p > h > z zp , z > l+ l- , zp > l+ l-' # will be put into the MG cards
 MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to mkgridpack.sh and MG_cards_template 
 
 # Outputs:
 workDirBASE="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration" # No trailing '/'! , Path to all work dirs and workDir_template
 freshCMSSWpath="/home/rosedj1/CleanCMSSWenvironments/CMSSW_9_4_2/src/"
-storageSiteGEN="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_GEN-SIM/"
-storageSitePUMix="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_PUMix/"
-storageSiteAOD="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_AODSIM/"
-storageSiteMiniAOD="/store/user/drosenzw/ppZZd/${analysis}/${analysis}_MINIAODSIM/"
+storageSiteGEN="/store/user/drosenzw/ppHZZd/${analysis}/${analysis}_GEN-SIM/"
+storageSitePUMix="/store/user/drosenzw/ppHZZd/${analysis}/${analysis}_PUMix/"
+storageSiteAOD="/store/user/drosenzw/ppHZZd/${analysis}/${analysis}_AODSIM/"
+storageSiteMiniAOD="/store/user/drosenzw/ppHZZd/${analysis}/${analysis}_MINIAODSIM/"
 
 #_____________________________________________________________________________________
 # Automatic variables
@@ -223,80 +221,50 @@ fi
 
 #_____________________________________________________________________________________
 # Unpack tarball and make LHE file
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#@@@@@@@@@@@@@@@@@@@@ WARNING @@@@@@@@@@@@@@@@@@@@@@@
-#@@@@@ This code is still under construction!!! @@@@@
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 if [ ${makeLHEfile} = 1 ]; then
     for zdmass in ${zdmasslist}; do
 
-        unpackedTarDir="UnpackedTarball"
+        unpackedTarDir="UnpackTarball"
         workDir=workDir_${analysis}_eps${epsilon}_mZd${zdmass}
         #cardsDir=${analysis}_cards_eps${epsilon}_MZD${zdmass}
 
-        if [ ! -e ${workDirBASE}/${workDir}/${}]
-        echo "Unpacking tarball in ${workDir} Generating gridpack ${tarballName} for mZd${zdmass} GeV for process ${analysis}" 
-        cd ${workdir}
-        
-        # See if tarball is already unpacked
-        if [ -d ${} ]; then
-            echo "WARNING! Tarball has already been unpacked in ${}"
-        else
+        function createLHEfile {
+            
+            cd ${workDirBASE}/${workDir}
             mkdir ${unpackedTarDir}
             cd ${unpackedTarDir}
             mv ../${tarballName} .
+            echo "Untarring ${tarballName} in ${workDirBASE}/${workDir}/${unpackedTarDir}"
             tar -xf ${tarballName}
-            # Move tarball back to where it was
-            mv ${tarballName} ..
 
-        ### Create LHE file
-        # Get a random 4 digit number for seed
-        randnum=$(( 1000 + RANDOM % 9000 ))
-        ./runcmsgrid.sh ${maxevents} ${randnum}
+            ## Create LHE file
+            ## Get a random 4 digit number for seed
+            randnum=$(( 1000 + RANDOM % 9000 ))
+            time ./runcmsgrid.sh ${maxevents} ${randnum} 1
 
-#### The code below is used only as a template! Delete it when ready.
-        cd ${startDir} 
+            ## Move tarball back to where it was
+            mv ./${tarballName} ..
+            }
 
-        function createNewTarball {
-            
-            cd ${MG_Dir}
-
-            #- Remove old files
-            if [ -d HAHM_variablesw_v3/ ];     then rm -rf HAHM_variablesw_v3/; fi
-            if [ -e HAHM_variablesw_v3.log ];  then rm     HAHM_variablesw_v3.log; fi
-            if [ -e ${tarballName} ];          then rm     ${tarballName}; fi
-            if [ -d ${workDirBASE}/${workDir}/HAHM_variablesw_v3/ ];    then rm -rf ${workDirBASE}/${workDir}/HAHM_variablesw_v3/; fi
-            if [ -e ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log ]; then rm     ${workDirBASE}/${workDir}/HAHM_variablesw_v3.log; fi
-            if [ -e ${workDirBASE}/${workDir}/${tarballName} ];         then rm     ${workDirBASE}/${workDir}/${tarballName}; fi
-
-            cp mkgridpack.sh DELETE_mkgridpack.sh
-            cp gridpack_generation.sh DELETE_gridpack_generation.sh
-            sed -i "s|gridpack|DELETE_gridpack|g"        DELETE_mkgridpack.sh
-            sed -i "s|MODELPATH|${MG_Dir}/${cardsDir}|g" DELETE_gridpack_generation.sh
-            ./DELETE_mkgridpack.sh HAHM_variablesw_v3 ${cardsDir}/
-            rm DELETE_mkgridpack.sh DELETE_gridpack_generation.sh
-
-            echo "Moving tarball and log files into: ${workDirBASE}/${workDir}/"
-            mv HAHM_variablesw_v3/ HAHM_variablesw_v3.log ${tarballName} ${workDirBASE}/${workDir}
-            echo
-        }
-
-        ## Check to see if tarball already exists in workspace 
-        if [ -e ${workDirBASE}/${workDir}/${tarballName} ] && [ ${overWrite} = 0 ]; then
-            echo "The gridpack ${tarballName} already exists in ${workDirBASE}/${workDir}. Overwrite it? [y/n] "
+        ## Check to see if dir already exists
+        if [ -e ${workDirBASE}/${workDir}/${unpackedTarDir}/gridpack_generation.log ] && [ ${overWrite} = 0 ]; then
+            echo "Directory ${workDirBASE}/${workDir}/${unpackedTarDir} already exists. Overwrite it? [y/n] "
             read ans
             if [ ${ans} = 'y' ]; then 
-                createNewTarball
+                createLHEfile
             else
-                echo "Not creating new tarball for mZd${zdmass}."
+                echo "Not creating LHE file for mZd${zdmass} GeV mass point."
                 continue
             fi
 
-        ## Tarball doesn't exist or user overwrites all. Create tarball
-        else
-            createNewTarball
+        else 
+            ## Dir doesn't exist or user overwrites all. Create LHE file.
+            echo "Creating LHE file for mZd${zdmass} GeV mass point."
+            createLHEfile
         fi
 
+    done
     cd ${startDir}
 fi
 
