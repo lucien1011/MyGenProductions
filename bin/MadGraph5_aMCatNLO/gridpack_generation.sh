@@ -11,7 +11,7 @@
 
 ##########################################################################################
 #For runnning, the following command should be used                                      #
-#./create_gridpack_template.sh NAME_OF_PRODCUTION RELATIVE_PATH_TO_CARDS QUEUE_SELECTION #
+#./create_gridpack_template.sh NAME_OF_PRODUCTION RELATIVE_PATH_TO_CARDS QUEUE_SELECTION #
 #by NAME_OF_PRODUCTION you should use the names of run and proc card                     #
 #for example if the cards are bb_100_250_proc_card_mg5.dat and bb_100_250_run_card.dat   #
 #NAME_OF_PRODUCTION should be bb_100_250                                                 #
@@ -272,17 +272,31 @@ if [ ! -d ${AFS_GEN_FOLDER}/${name}_gridpack ]; then
   sed -i "s#INCLUDES = -I../include#INCLUDES = -I../include -I${BOOSTINCLUDES}#g" src/Makefile  
   PATH=`${LHAPDFCONFIG} --prefix`/bin:${PATH} make
   cd ..
+  echo "Your shell is at the following location:"
+  echo $PWD
   
   #load extra models if needed
   if [ -e $CARDSDIR/${name}_extramodels.dat ]; then
-    echo "Loading extra models specified in $CARDSDIR/${name}_extramodels.dat"
+    echo "Loading extra models specified in ${CARDSDIR}${name}_extramodels.dat"
     #strip comments
     sed 's:#.*$::g' $CARDSDIR/${name}_extramodels.dat | while read model
     do
       #get needed BSM model
       if [[ $model = *[!\ ]* ]]; then
-        echo "Loading extra model $model"
-        wget --no-verbose --no-check-certificate https://cms-project-generators.web.cern.ch/cms-project-generators/$model	
+        echo "Loading extra model ${model}"
+        #wget --no-verbose --no-check-certificate https://cms-project-generators.web.cern.ch/cms-project-generators/$model	
+        #cp /afs/cern.ch/work/k/klo/Higgs/ALP/EvtGeneration/test/2018-02-14/$model .
+        #cp -r /home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_3_1/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO/HAHMcards_MZD35/$model .
+        #cp -r /afs/cern.ch/work/d/drosenzw/public/$model .
+        #cp -r /home/rosedj1/$model . # This is just the full path to a model tarball, like: HAHM_variablesw_v3_UFO.tar.gz
+
+        # Shell is inside MG5_aMC_v2_4_2/ at this point.
+        cp -r MODELPATH/$model . # This is just the full path to a model tarball, like: HAHM_variablesw_v3_UFO.tar.gz
+        # ^^^ Used for creation of many mass points with a script like createAndSubmitGridpacks.sh
+
+        #wget https://cms-project-generators.web.cern.ch/cms-project-generators/$model
+        # ^^^ Use the 'wget' command if you need to download a fresh tarball from the cms-generator website.
+        echo $model
         cd models
         if [[ $model == *".zip"* ]]; then
           unzip ../$model
@@ -763,6 +777,8 @@ if [ -e $CARDSDIR/${name}_externaltarball.dat ]; then
     EXTRA_TAR_ARGS="${name}_externaltarball.dat header_for_madspin.txt"
 fi
 XZ_OPT="$XZ_OPT" tar -cJpsf ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz mgbasedir process runcmsgrid.sh gridpack_generation*.log InputCards $EXTRA_TAR_ARGS
+echo ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz
+echo $EXTRA_TAR_ARGS
 
 #mv ${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz ${PRODHOME}/${name}_${scram_arch}_${cmssw_version}_tarball.tar.xz
 
