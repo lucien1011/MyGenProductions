@@ -250,15 +250,14 @@ fi
 if [ ${makeLHEfile} = 1 ]; then
     for zdmass in ${zdmasslist}; do
 
-        timestamp=`gettimestamp`
-        unpackedTarDir="UnpackTarball_${timestamp}"
+        unpackedTarDir="UnpackTarball"
         workDir="workDir_${analysis}_eps${epsilon}_mZd${zdmass}"
         newtarballName=${analysis}_mZd${zdmass}_slc6_amd64_gcc481_CMSSW_7_1_30_tarball.tar.xz
 
         function createLHEfile {
             
             cd ${workDirBASE}/${workDir}
-            mkdir ${unpackedTarDir}
+            if [ ! -d ${unpackedTarDir} ]; then mkdir ${unpackedTarDir}; fi
             cd ${unpackedTarDir}
             mv ../${newtarballName} .
             echo "Untarring ${newtarballName} in ${workDirBASE}/${workDir}/${unpackedTarDir}"
