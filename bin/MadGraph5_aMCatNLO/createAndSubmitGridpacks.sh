@@ -1,15 +1,15 @@
 #!/bin/bash
 #####################################################################################################
-## PURPOSE: For each ????? quickly and easily:
-##              - make MadGraph cards for any HZZ4lep process
-##              - prepare a workdir (crab_cfg.py, stepX files)
-##              - generate a new gridpack (tarball)
+## PURPOSE: Quickly and easily:
+##              - make MadGraph cards for any MadGraph process
+##              - prepare a workdir (with crab_cfg.py, stepX files, etc.)
+##              - generate gridpacks (tarballs)
 ##              - submit any CRAB process (e.g., GEN-SIM, PUMix, AOD, MiniAOD)
 ## SYNTAX:  ./<script.sh>  
 ## NOTES:   User needs to do: 
-##          - 'source /cvmfs/cms.cern.ch/crab3/crab.sh' before running this script.
 ##          - Check all cards in MG_cards_template/
 ##          - REVIEW EACH LINE IN 'User-specific Parameters' SECTION VERY CAREFULLY!
+##          - 'source /cvmfs/cms.cern.ch/crab3/crab.sh' before running this script.
 ##          - FIXME!!! Submitted CRAB jobs don't have their Dataset stored, for some reason.
 ##            This means that the user must manually tell CRAB which files to grab!!!
 ## AUTHOR:  Jake Rosenzweig
