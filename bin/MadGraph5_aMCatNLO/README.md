@@ -11,7 +11,7 @@ echo "bin/MadGraph5_aMCatNLO/" >> .git/info/sparse-checkout
 git pull origin master
 ``` 
 
-Make sure that the following directory templates are suited for your work. Look over each file carefully:
+Make sure that each file in the following directory is suited for your work:
 <!--Now you need to prepare a couple of directories:
 * createAndSubmitGridpacks.sh -->
 * `MadGraph_cards_<MODEL>_template/`, where <MODEL> matches the model you are using (like "ALP").
@@ -28,13 +28,13 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 ```
 
 ### The most important parameters in *createAndSubmitGridpacks.sh*
-##### Process Parameters:
+#### Process Parameters:
 * `modelName="ALP"`                       # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
 * `analysis="acc_study_hTOzzTO4mu"`       # Used for auto naming directories and files.
 * `process='p p > h > z z , z > mu+ mu-'` # Will be put directly into the MG cards.
 * `zdmasslist="5 10 15"`                  # The mass points (GeV) to be run over. 
 
-##### Navigation Parameters:
+#### Navigation Parameters:
 * `MG_Dir="FullPath/to/this/dir"`   # No trailing `/`!
    * This path must also contain `gridpack_generation.sh` and `MG_cards_template/`
 * `MG_cards_template_dir="MG_cards_<MODEL>_template"`   # No trailing `/`!        
@@ -44,7 +44,7 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 * `process='p p > h > z z , z > mu+ mu-`, the exact MadGraph5 process (MG5) to be inserted into your MG5 card.
 -->
 
-##### All other parameters are mostly for naming purposes:
+#### All other parameters are mostly for naming purposes:
 * `epsilon`
 * `kappa`
 * `lhapdf`
