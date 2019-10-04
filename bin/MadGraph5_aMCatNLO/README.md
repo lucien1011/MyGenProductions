@@ -1,5 +1,7 @@
 ## How to generate signal samples, gridpacks, submit CRAB jobs, and all that jazz.
 <!--- The safest way for this code to work is to `git clone https://github.com/rosedj1/genproductions.git`, because there are lots of dependent files. However, you may just be able to do:--->
+
+Pull down the code:
 ```bash
 git init MadGraph5_aMCatNLO
 cd MadGraph5_aMCatNLO
@@ -9,15 +11,20 @@ echo "bin/MadGraph5_aMCatNLO/" >> .git/info/sparse-checkout
 git pull origin master
 ``` 
 
+Make sure that the following directory templates are suited for your work. Look over each file carefully:
+<!--Now you need to prepare a couple of directories:
+* createAndSubmitGridpacks.sh -->
+* `MadGraph_cards_<MODEL>_template/`, where <MODEL> matches the model you are using (like "ALP").
+* `workDir_template/`
+    * Any capitalized words will be substituted out by _createAndSubmitGridpacks.sh_.
+
 The main script is *createAndSubmitGridpacks.sh*. There are various **switches** inside the script that you need to turn on (`1`) and off (`0`). For example,
 
 ```bash
 makeCards=1
 makeWorkspace=0
 ```
-In this case, new **MadGraph5 cards will be generated**, but a new workspace will **not**. 
-
-Possible switches:
+In this case, new **MadGraph5 cards will be generated**, but a new workspace will **not**. Possible switches:
 ```bash
 makeCards=1         # New MadGraph cards.                                                     
 makeWorkspace=1     # Run this to apply new User-specific Parameters below or make new CRAB cards
@@ -25,12 +32,6 @@ makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. must not have cmse
 makeLHEfile=1       # Unpacks tarball and does: ./runcmsgrid.sh   
 overWrite=0         # 1 = overwrite any files and directories without prompting
 ```
-
-## Now you need to prepare a couple of directories:
-<!-- * createAndSubmitGridpacks.sh -->
-* `MadGraph_cards_template/`
-   * Make 
-* workDir_template/
 
 ### The most important parameters in *createAndSubmitGridpacks.sh*:
 * `modelName="ALP"`                       # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
@@ -42,9 +43,9 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 * `process='p p > h > z z , z > mu+ mu-`, the exact MadGraph5 process (MG5) to be inserted into your MG5 card.
 -->
 
-* MG_Dir="FullPath/to/this/dir"   # No trailing '/'! , Path to gridpack_generation.sh and MG_cards_template
+* `MG_Dir="FullPath/to/this/dir"`   # No trailing `/`! Path to `gridpack_generation.sh` and `MG_cards_template`.
    * This path must also contain `gridpack_generation.sh` and `MG_cards_template/`
-* `MG_cards_template_dir="MG_cards_ALP_template"`   # No trailing '/'!                                   
+* `MG_cards_template_dir="MG_cards_ALP_template"`   # No trailing `/`!                                   
 
 All other parameters are mostly for naming purposes:
 * `epsilon`
