@@ -1,50 +1,57 @@
 #!/bin/bash
 #####################################################################################################
 ## PURPOSE: Quickly and easily:
-##              - make MadGraph cards for any MadGraph process
-##              - prepare a workdir (with crab_cfg.py, stepX files, etc.)
-##              - generate gridpacks (tarballs)
-##              - submit any CRAB process (e.g., GEN-SIM, PUMix, AOD, MiniAOD)
+##          - make MadGraph cards for any MadGraph process.
+##          - prepare a workdir (with crab_cfg.py, stepX files, etc.).
+##          - generate gridpacks (tarballs).
+##          - submit any CRAB process (e.g., GEN-SIM, PUMix, AOD, MiniAOD).
 ## SYNTAX:  ./<script.sh>  
-## NOTES:   User needs to do: 
-##          - Check all cards in MG_cards_template/
-##          - REVIEW EACH LINE IN 'User-specific Parameters' SECTION VERY CAREFULLY!
-##          - 'source /cvmfs/cms.cern.ch/crab3/crab.sh' before running this script.
+## NOTES:   User needs to:
+##          - Check all cards in MG_cards_template/ and workDir_template/
+##          - REVIEW EACH LINE IN 'User-specific Parameters' section below VERY CAREFULLY!
+##          - 'source /cvmfs/cms.cern.ch/crab3/crab.sh' before running the CRAB stuff.
 ##          - FIXME!!! Submitted CRAB jobs don't have their Dataset stored, for some reason.
 ##            This means that the user must manually tell CRAB which files to grab!!!
 ## AUTHOR:  Jake Rosenzweig
-## DATE:    2019-02-09
-## UPDATED: 2019-07-17
+## UPDATED: 2019-02-09 --> 2019-10-04
 #####################################################################################################
 
 #_____________________________________________________________________________________
 # User chooses which processes to run: 1 = run, 0 = don't run
-makeCards=0         # New MadGraph cards
-makeWorkspace=0     # Run this to apply new User-specific Parameters below or make new CRAB cards
+makeCards=1         # New MadGraph cards
+makeWorkspace=1     # Run this to apply new User-specific Parameters below or make new CRAB cards
 makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. must not have cmsenv'ed!
-makeLHEfile=1       # Unpacks tarball and does: ./runcmsgrid.sh
+makeLHEfile=0       # Unpacks tarball and does: ./runcmsgrid.sh
+
+########################
+### CURRENTLY BROKEN ###
 submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
+########################
 
 overWrite=0 # 1 = overwrite any files and directories without prompting
-#zdmasslist="5 10 15 20 25 30 35"
-#zdmasslist="4 5 7 10 15 20 25 30 35"
-zdmasslist="35"
 #_____________________________________________________________________________________
 # User-specific Parameters
 # If you change parameters here, you have to rerun makeWorkspace=1 for them to take effect
+## More important parameters
+modelName="ALP"                              # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
+analysis="acc_study_hTOzzTO4mu"              # Used for naming directories and files.
+process='p p > h > z z , z > mu+ mu-'        # Will be put directly into the MG cards.
+#process='p p > h > alp alp , alp > mu+ mu-' # Will be put directly into the MG cards.
+zdmasslist="35"                              # The mass points (GeV) to be run over.
+#zdmasslist="4 5 7 10 15 20 25 30 35"
+nevents=10000
+njobs=1
+
+## Less important parameters, mostly for naming purposes.
 epsilon="2e-2"      # epsilon can't yet contain a decimal, e.g. 1.5e-2
 kappa="1e-9"
 numjets=0
-modelName="ALP"     # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
-nevents=10000
-njobs=1
 lhapdf=306000       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
-analysis="acc_study_hTOzzTO4mu"  # used for naming directories and files
-process='p p > h > z z , z > mu+ mu-' # will be put into the MG cards
-#process='p p > h > alp alp , alp > mu+ mu-' # will be put into the MG cards
+
+# Inputs: 
 MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to gridpack_generation.sh and MG_cards_template 
 MG_cards_template_dir="MG_cards_ALP_template"   # No trailing '/'!
 
