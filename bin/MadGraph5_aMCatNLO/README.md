@@ -11,7 +11,7 @@ echo "bin/MadGraph5_aMCatNLO/" >> .git/info/sparse-checkout
 git pull origin master
 ``` 
 
-Make sure that each file in the following directory is suited for your work:
+Now check in the following directories and make sure that each file is suited for your work:
 <!--Now you need to prepare a couple of directories:
 * createAndSubmitGridpacks.sh -->
 * `MadGraph_cards_<MODEL>_template/`, where <MODEL> matches the model you are using (like "ALP").
@@ -28,6 +28,10 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 ```
 
 ### The most important parameters in *createAndSubmitGridpacks.sh*
+NOTE: Wherever you see <MODEL>, replace it with the exact model name of your tarball: `<MODEL>.tar.gz`
+* For example, my <MODEL> is `HAHM_variablesw_v3` which comes from `HAHM_variablesw_v3_UFO.tar.gz`.
+* You can find the list of CMS tarballs here: https://cms-project-generators.web.cern.ch/cms-project-generators/
+
 #### Process Parameters:
 * `modelName="ALP"`                       # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
 * `analysis="acc_study_hTOzzTO4mu"`       # Used for auto naming directories and files.
@@ -36,11 +40,11 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 
 #### Navigation Parameters:
 * `MG_Dir="FullPath/to/this/dir"`   # No trailing `/`!
-   * This path must also contain `gridpack_generation.sh` and `MG_cards_template/`
-* `MG_cards_template_dir="MG_cards_<MODEL>_template"`   # No trailing `/`!        
+   * This path must also lead to `gridpack_generation.sh` and `MG_cards_template/`
+* `MG_cards_template_dir="MG_cards_<MODEL>_template"`   # No trailing `/`! Replace <MODEL> with your model name.
 * `workDirBASE="FullPath/to/workDir_template"` # No trailing `/`!
-* `freshCMSSWpath="/home/rosedj1/CleanCMSSWenvironments/CMSSW_9_4_2/src/"` # Tarball creation complains unless you are in a clean CMSSW environment.
-<!-- * `modelName="HAHM_variablesw_v3"`, the exact model name must match the tarball name like: `HAHM_variablesw_v3_UFO.tar.gz`
+* `freshCMSSWpath="/home/rosedj1/CMSSW_9_4_2/src/"` # Tarball creation complains unless you are in a clean CMSSW environment.
+<!-- * 
 * `process='p p > h > z z , z > mu+ mu-`, the exact MadGraph5 process (MG5) to be inserted into your MG5 card.
 -->
 
