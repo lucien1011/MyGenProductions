@@ -28,9 +28,10 @@ overWrite=0         # 1 = overwrite any files and directories without prompting
 ```
 
 ### The most important parameters in *createAndSubmitGridpacks.sh*
-NOTE: Wherever you see <MODEL>, replace it with the exact model name of your tarball: `<MODEL>.tar.gz`
-* For example, my <MODEL> is `HAHM_variablesw_v3` which comes from `HAHM_variablesw_v3_UFO.tar.gz`.
-* You can find the list of CMS tarballs here: https://cms-project-generators.web.cern.ch/cms-project-generators/
+NOTE: Wherever you see \<MODEL\>, replace it with the exact model name of your tarball: `<MODEL>.tar.gz`
+* For example, my \<MODEL\> is `HAHM_variablesw_v3` which comes from `HAHM_variablesw_v3_UFO.tar.gz`.
+* You can find the list of models and their corresponding tarballs here: 
+   * https://cms-project-generators.web.cern.ch/cms-project-generators/
 
 #### Process Parameters:
 * `modelName="ALP"`                       # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
