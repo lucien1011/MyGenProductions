@@ -22,16 +22,14 @@
 makeCards=1         # New MadGraph cards
 makeWorkspace=1     # Run this to apply new User-specific Parameters below or make new CRAB cards
 makeTarball=1       # MUST HAVE clean CMSSW environment, i.e. must not have cmsenv'ed!
-makeLHEfile=1       # Unpacks tarball and does: ./runcmsgrid.sh
+makeLHEfile=0       # Unpacks tarball and does: ./runcmsgrid.sh
 submitGENSIM=0      # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitPUMix=0       # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitAOD=0         # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 submitMiniAOD=0     # first do: source /cvmfs/cms.cern.ch/crab3/crab.sh 
 
 overWrite=1 # 1 = overwrite any files and directories without prompting
-#zdmasslist="7 15 20 25 30 35 40 45 50"
-#zdmasslist="35"
-zdmasslist="35 40 45 50"
+zdmasslist="4 7 15 20 25 30 33"
 #_____________________________________________________________________________________
 # User-specific Parameters
 # If you change parameters here, you have to rerun makeWorkspace=1 for them to take effect
@@ -42,11 +40,11 @@ modelName="ALP"     # MG5 model name: "HAHM_variablesw_v3", "ALP", etc.
 nevents=10000
 njobs=1
 lhapdf=306000       # 10042=cteq61l, 306000=NNPDF31_nnlo_hessian_pdfas (official pdf for 2017)
-analysis="acc_study_hTOalpalp"  # used for naming directories and files
-process='p p > h > alp alp , alp > e+ e-' # will be put into the MG cards
+analysis="acc_study_hTOZaTo2l2g"  # used for naming directories and files
+process='p p > h > Z alp , Z > l+ l- , alp > a a' # will be put into the MG cards
 #process='p p > h > alp alp , alp > mu+ mu-' # will be put into the MG cards
 #MG_Dir="/home/rosedj1/DarkZ-EvtGeneration/CMSSW_9_4_2/src/DarkZ-EvtGeneration/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to gridpack_generation.sh and MG_cards_template 
-MG_Dir="/home/lucien/AnalysisCode/Higgs/ALP/genproductions/bin/MadGraph5_aMCatNLO"   # No trailing '/'! , Path to gridpack_generation.sh and MG_cards_template 
+MG_Dir="${PWD}"   # No trailing '/'! , Path to gridpack_generation.sh and MG_cards_template 
 MG_cards_template_dir="MG_cards_ALP_template"   # No trailing '/'!
 
 # Outputs:
